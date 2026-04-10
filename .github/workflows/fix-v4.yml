@@ -1,0 +1,33 @@
+name: Fix v4 Branch
+
+on:
+  workflow_dispatch:
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout v4 branch
+        uses: actions/checkout@v4
+        with:
+          ref: v4
+          fetch-depth: 0
+          
+      - name: Remove submodule from v4
+        run: |
+          # 移除子模块
+          git rm --cached doing-it-in-public 2>/dev/null || true
+          rm -rf .git/modules/doing-it-in-public 2>/dev/null || true
+          rm -f .gitmodules
+          git config --local --remove-section submodule.doing-it-in-public 2>/dev/null || true
+          
+          # 提交更改
+          git config user.name "Cleanup Bot"
+          git config user.email "cleanup@example.com"
+          git add -A
+          git commit -m "Remove invalid submodule from v4" || echo "No changes"
+          
+          # 推送到 v4 分支
+          git push origin v4 --force

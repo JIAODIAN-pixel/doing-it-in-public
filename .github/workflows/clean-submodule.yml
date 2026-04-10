@@ -1,0 +1,36 @@
+name: Clean Submodule
+
+on:
+  workflow_dispatch:
+
+jobs:
+  clean:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          
+      - name: Remove submodule from index
+        run: |
+          # 强制从 Git 索引中移除
+          git rm --cached doing-it-in-public
+          
+          # 删除子模块的 Git 目录
+          rm -rf .git/modules/doing-it-in-public
+          
+          # 删除 .gitmodules 文件
+          rm -f .gitmodules
+          
+          # 从 Git 配置中移除
+          git config --local --remove-section submodule.doing-it-in-public || true
+          
+      - name: Commit and push
+        run: |
+          git config user.name "Cleanup Bot"
+          git config user.email "cleanup@example.com"
+          git commit -m "Remove invalid submodule reference completely"
+          git push origin main --force
